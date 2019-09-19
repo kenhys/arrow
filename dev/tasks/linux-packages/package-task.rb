@@ -201,16 +201,17 @@ RELEASE=#{@rpm_release}
         end
 
         cd(yum_dir) do
-          distribution_versions = (ENV["CENTOS_VERSIONS"] || "6,7").split(",")
-          threads = []
-          distribution_versions.each do |version|
+          targets = (ENV["CENTOS_VERSIONS"] || "6,7").split(",")
+          targets.each do |target|
+            version, architecture = target.split("-", 2)
+            threads = []
             os = "#{distribution}-#{version}"
             if parallel_build?
               threads << Thread.new(os) do |local_os|
-                run_docker(local_os)
+                run_docker(local_os, architecture)
               end
             else
-              run_docker(os)
+              run_docker(os, architecture)
             end
           end
           threads.each(&:join)
